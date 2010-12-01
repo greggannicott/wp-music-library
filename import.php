@@ -37,12 +37,19 @@
 
            try {
 
-              $rows_inserted = 0;
-              $rows_updated = 0;
+              // Prepare some variables to hold stats
+              $rows_inserted = array();
+              $rows_updated = array();
               $rows_deleted = 0;
 
               // Loop through each song in the library
               foreach ($songs as $song) {
+
+                  // Determine whether entry is a compilation
+                  $compilation = 0;
+                  if (isset($song['Compilation'])) {
+                      $compilation = 1;
+                  }
 
                  // Update existing entries, and add new ones
                  //if (!$result = $db->query("SELECT persistent_id FROM songs WHERE persistent_id = '".$song['Persistent ID']."'")) {$logger->error("Error checking the existence of song ".$song['Persistent ID'].": ".$db->error);}
@@ -54,17 +61,20 @@
                             , name
                             , artist
                             , album
+                            , compilation
                          ) VALUES (
                             '".addslashes($song['Persistent ID'])."'
                             , ".$song['Track ID']."
                             , '".addslashes($song['Name'])."'
                             , '".addslashes($song['Artist'])."'
                             , '".addslashes($song['Album'])."'
+                            , ".$compilation."
                          ) ON DUPLICATE KEY UPDATE 
                             track_id = '".$song['Track ID']."'
                             , name = '".addslashes($song['Name'])."'
                             , artist = '".addslashes($song['Artist'])."'
-                            , album = '".addslashes($song['Album'])."'";
+                            , album = '".addslashes($song['Album'])."'
+                            , compilation = ".$compilation;
 
                  $logger->debug("SQL being executed: ".$sql);
                  if (!$result = $db->query($sql)) {throw new Exception("Unable to insert/udpate entry '".$song['Persistent ID']."': ".$db->error);}
@@ -72,10 +82,10 @@
                  // Keep the stats up to date
                  switch ($db->affected_rows) {
                      case 1:
-                         $rows_inserted++;
+                         array_push($rows_inserted,$song);
                          break;
                      case 2:
-                         $rows_updated++;
+                         array_push($rows_updated,$song);
                          break;
                  }
 
@@ -106,10 +116,36 @@
               $logger->debug("Re-enabling Auto Commit");
               $db->autocommit(TRUE);
               
-              print '<h2>Import Complete</h2>';
-              print '<p>Row(s) Inserted: '.$rows_inserted.'</p>';
-              print '<p>Row(s) Updated: '.$rows_updated.'</p>';
-              print '<p>Row(s) Deleted: '.$rows_deleted.'</p>';
+              print '<h1>Import Results</h1>';
+              print '<h2>Overview</h2>';
+              print '<p>Song(s) Inserted: '.count($rows_inserted).'</p>';
+              print '<p>Song(s) Updated: '.count($rows_updated).'</p>';
+              print '<p>Song(s) Deleted: '.$rows_deleted.'</p>';
+              
+              print '<h2>Breakdown</h2>';
+              
+              print '<h3>Songs Inserted</h3>';
+              
+              if (count($rows_inserted) > 0) {
+                  print '<ul>';
+                  foreach($rows_inserted as $song) {
+                      print '<li>'.$song['Artist'].' - '.$song['Album'].' - '.$song['Name'].'</li>';
+                  }
+                  print '</ul>';
+              } else {
+                  print '<p>None</p>';
+              }
+              print '<h3>Songs Updated</h3>';
+
+              if (count($rows_updated) > 0) {
+                  print '<ul>';
+                  foreach($rows_updated as $song) {
+                      print '<li>'.$song['Artist'].' - '.$song['Album'].' - '.$song['Name'].'</li>';
+                  }
+                  print '</ul>';
+              } else {
+                  print '<p>None</p>';
+              }
 
            } catch (Exception $e) {
 
