@@ -4,6 +4,7 @@
    require_once("includes/itunes_xml_parser_php5.php");
 
    // Set the timeout limit for this page
+   ini_set("memory_limit", "256M");
    set_time_limit(60 * 5);
    
 ?>
@@ -36,8 +37,9 @@
 
            try {
 
-              $updated_rows = 0;
-              $deleted_rows = 0;
+              $rows_inserted = 0;
+              $rows_updated = 0;
+              $rows_deleted = 0;
 
               // Loop through each song in the library
               foreach ($songs as $song) {
@@ -68,7 +70,14 @@
                  if (!$result = $db->query($sql)) {throw new Exception("Unable to insert/udpate entry '".$song['Persistent ID']."': ".$db->error);}
 
                  // Keep the stats up to date
-//                 $affected_rows += $result;
+                 switch ($db->affected_rows) {
+                     case 1:
+                         $rows_inserted++;
+                         break;
+                     case 2:
+                         $rows_updated++;
+                         break;
+                 }
 
                  unset($sql);
 
@@ -84,7 +93,7 @@
               if (!$result = $db->query("DELETE FROM songs WHERE in_library_file_flag is null")) {throw new Exception("Unable to removed deleted entries: ".$db->error);}
 
               // Keep the stats up to date
-//              $deleted_rows = $result->rowCount;
+              $rows_deleted = $db->affected_rows;
 
               // Reset the in_library_file flag
               if (!$result = $db->query("UPDATE songs SET in_library_file_flag = null")) {throw new Exception("Unable to reset in_library_file_flag: ".$db->error);}
@@ -98,8 +107,9 @@
               $db->autocommit(TRUE);
               
               print '<h2>Import Complete</h2>';
-              print '<p>Updates/Inserted Row(s): '.$updated_rows.'</p>';
-              print '<p>Deleted Row(s): '.$deleted_rows.'</p>';
+              print '<p>Row(s) Inserted: '.$rows_inserted.'</p>';
+              print '<p>Row(s) Updated: '.$rows_updated.'</p>';
+              print '<p>Row(s) Deleted: '.$rows_deleted.'</p>';
 
            } catch (Exception $e) {
 
