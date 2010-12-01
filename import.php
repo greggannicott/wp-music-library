@@ -22,7 +22,7 @@
         // Set the file path. In future this would likely be handled by
         // an upload mech. However, for now we'll assume we know where the file
         // is stored.
-        $file_path = 'library.xml';
+        $file_path = '../library.xml';
 
         // Check we have a file path
         if (isset($file_path)) {
