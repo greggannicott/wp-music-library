@@ -65,15 +65,15 @@
                   $track_number = isset($song['Track Number']) ? $song['Track Number'] : 'null';
                   $track_count = isset($song['Track Count']) ? $song['Track Count'] : 'null';
                   $year = isset($song['Year']) ? $song['Year'] : 'null';
-                  $date_modified = isset($song['Date Modified']) ? strtotime($song['Date Modified']) : 'null';
-                  $date_added = isset($song['Date Added']) ? strtotime($song['Date Added']) : 'null';
+                  $date_modified = isset($song['Date Modified']) ? $song['Date Modified'] : 'null';
+                  $date_added = isset($song['Date Added']) ? $song['Date Added'] : 'null';
                   $bit_rate = isset($song['Bit Rate']) ? $song['Bit Rate'] : 'null';
                   $sample_rate = isset($song['Sample Rate']) ? $song['Sample Rate'] : 'null';
                   $rating = isset($song['Rating']) ? $song['Rating'] : 'null';
                   $album_rating = isset($song['Album Rating']) ? $song['Album Rating'] : 'null';
                   $play_count = isset($song['Play Count']) ? $song['Play Count'] : 'null';
                   $play_date = isset($song['Play Date']) ? $song['Play Date'] : 'null';
-                  $play_date_utc = isset($song['Play Date UTC']) ? strtotime($song['Play Date UTC']) : 'null';
+                  $play_date_utc = isset($song['Play Date UTC']) ? $song['Play Date UTC'] : 'null';
                   $normalization = isset($song['Normalization']) ? $song['Normalization'] : 'null';
                   $track_type = isset($song['Track Type']) ? $song['Track Type'] : 'null';
                   $location = isset($song['Location']) ? $song['Location'] : 'null';
@@ -128,8 +128,8 @@
                             , ".$track_number."
                             , ".$track_count."
                             , ".$year."
-                            , FROM_UNIXTIME(".$date_modified.")
-                            , FROM_UNIXTIME(".$date_added.")
+                            , '".$date_modified."'
+                            , '".$date_added."'
                             , ".$bit_rate."
                             , ".$sample_rate."
                             , ".$rating."
@@ -137,7 +137,7 @@
                             , ".$album_rating_computed."
                             , ".$play_count."
                             , ".$play_date."
-                            , FROM_UNIXTIME(".$play_date_utc.")
+                            , '".$play_date_utc."'
                             , ".$normalization."
                             , '".addslashes($track_type)."'
                             , '".addslashes($location)."'
@@ -157,8 +157,8 @@
                             , track_number = ".$track_number."
                             , track_count = ".$track_count."
                             , year = ".$year."
-                            , date_modified = FROM_UNIXTIME(".$date_modified.")
-                            , date_added = FROM_UNIXTIME(".$date_added.")
+                            , date_modified = '".$date_modified."'
+                            , date_added = '".$date_added."'
                             , bit_rate = ".$bit_rate."
                             , sample_rate = ".$sample_rate."
                             , rating = ".$rating."
@@ -166,7 +166,7 @@
                             , album_rating_computed = ".$album_rating_computed."
                             , play_count = ".$play_count."
                             , play_date = ".$play_date."
-                            , play_date_utc = FROM_UNIXTIME(".$play_date_utc.")
+                            , play_date_utc = '".$play_date_utc."'
                             , normalization = ".$normalization."
                             , track_type = '".addslashes($track_type)."'
                             , location = '".addslashes($location)."'

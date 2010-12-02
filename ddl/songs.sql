@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Dec 02, 2010 at 04:14 PM
+-- Generation Time: Dec 02, 2010 at 04:28 PM
 -- Server version: 5.1.41
 -- PHP Version: 5.3.1
 
@@ -37,8 +37,8 @@ CREATE TABLE IF NOT EXISTS `songs` (
   `track_number` int(11) DEFAULT NULL,
   `track_count` int(11) DEFAULT NULL,
   `year` int(11) DEFAULT NULL,
-  `date_modified` datetime DEFAULT NULL,
-  `date_added` datetime DEFAULT NULL,
+  `date_modified` timestamp NULL DEFAULT NULL,
+  `date_added` timestamp NULL DEFAULT NULL,
   `bit_rate` int(11) DEFAULT NULL,
   `sample_rate` int(11) DEFAULT NULL,
   `rating` int(11) DEFAULT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `songs` (
   `album_rating_computed` tinyint(1) DEFAULT NULL,
   `play_count` int(11) DEFAULT NULL,
   `play_date` int(11) DEFAULT NULL,
-  `play_date_utc` datetime DEFAULT NULL,
+  `play_date_utc` timestamp NULL DEFAULT NULL,
   `normalization` int(11) DEFAULT NULL,
   `compilation` tinyint(1) DEFAULT NULL,
   `podcast` tinyint(1) DEFAULT NULL,
