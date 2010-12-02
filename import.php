@@ -46,12 +46,41 @@
               foreach ($songs as $song) {
 
                   // Handle the true/false fields
+                  // If they exist in the song's entry, it implies 'true'.
                   $compilation = isset($song['Compilation']) ? 1 : 0;
                   $podcast = isset($song['Podcast']) ? 1 : 0;
                   $unplayed = isset($song['Unplayed']) ? 1 : 0;
+                  $album_rating_computed = isset($song['Album Rated Computed']) ? 1 : 0;
+
+                  // take care of:
+                  // - values that might not exist for the popular song in the library (eg. default to nulls)
+                  // - timestamp conversion
+                  $track_id = isset($song['Track ID']) ? $song['Track ID'] : 'null';
+                  $name = isset($song['Name']) ? $song['Name'] : 'null';
+                  $artist = isset($song['Artist']) ? $song['Artist'] : 'null';
+                  $album = isset($song['Album']) ? $song['Album'] : 'null';
+                  $kind = isset($song['Kind']) ? $song['Kind'] : 'null';
+                  $size = isset($song['Size']) ? $song['Size'] : 'null';
+                  $total_time = isset($song['Total Time']) ? $song['Total Time'] : 'null';
+                  $track_number = isset($song['Track Number']) ? $song['Track Number'] : 'null';
+                  $track_count = isset($song['Track Count']) ? $song['Track Count'] : 'null';
+                  $year = isset($song['Year']) ? $song['Year'] : 'null';
+                  $date_modified = isset($song['Date Modified']) ? strtotime($song['Date Modified']) : 'null';
+                  $date_added = isset($song['Date Added']) ? strtotime($song['Date Added']) : 'null';
+                  $bit_rate = isset($song['Bit Rate']) ? $song['Bit Rate'] : 'null';
+                  $sample_rate = isset($song['Sample Rate']) ? $song['Sample Rate'] : 'null';
+                  $rating = isset($song['Rating']) ? $song['Rating'] : 'null';
+                  $album_rating = isset($song['Album Rating']) ? $song['Album Rating'] : 'null';
+                  $play_count = isset($song['Play Count']) ? $song['Play Count'] : 'null';
+                  $play_date = isset($song['Play Date']) ? $song['Play Date'] : 'null';
+                  $play_date_utc = isset($song['Play Date UTC']) ? strtotime($song['Play Date UTC']) : 'null';
+                  $normalization = isset($song['Normalization']) ? $song['Normalization'] : 'null';
+                  $track_type = isset($song['Track Type']) ? $song['Track Type'] : 'null';
+                  $location = isset($song['Location']) ? $song['Location'] : 'null';
+                  $file_folder_count = isset($song['File Folder Count']) ? $song['File Folder Count'] : 'null';
+                  $library_folder_count = isset($song['Library Folder Count']) ? $song['Library Folder Count'] : 'null';
                   
                  // Update existing entries, and add new ones
-                 //if (!$result = $db->query("SELECT persistent_id FROM songs WHERE persistent_id = '".$song['Persistent ID']."'")) {$logger->error("Error checking the existence of song ".$song['Persistent ID'].": ".$db->error);}
                  $sql = "INSERT INTO
                             songs
                          (
@@ -63,23 +92,87 @@
                             , compilation
                             , podcast
                             , unplayed
+                            , kind
+                            , size
+                            , total_time
+                            , track_number
+                            , track_count
+                            , year
+                            , date_modified
+                            , date_added
+                            , bit_rate
+                            , sample_rate
+                            , rating
+                            , album_rating
+                            , album_rating_computed
+                            , play_count
+                            , play_date
+                            , play_date_utc
+                            , normalization
+                            , track_type
+                            , location
+                            , file_folder_count
+                            , library_folder_count
                          ) VALUES (
                             '".addslashes($song['Persistent ID'])."'
-                            , ".$song['Track ID']."
-                            , '".addslashes($song['Name'])."'
-                            , '".addslashes($song['Artist'])."'
-                            , '".addslashes($song['Album'])."'
+                            , ".$track_id."
+                            , '".addslashes($name)."'
+                            , '".addslashes($artist)."'
+                            , '".addslashes($album)."'
                             , ".$compilation."
                             , ".$podcast."
                             , ".$unplayed."
+                            , '".addslashes($kind)."'
+                            , ".$size."
+                            , ".$total_time."
+                            , ".$track_number."
+                            , ".$track_count."
+                            , ".$year."
+                            , FROM_UNIXTIME(".$date_modified.")
+                            , FROM_UNIXTIME(".$date_added.")
+                            , ".$bit_rate."
+                            , ".$sample_rate."
+                            , ".$rating."
+                            , ".$album_rating."
+                            , ".$album_rating_computed."
+                            , ".$play_count."
+                            , ".$play_date."
+                            , FROM_UNIXTIME(".$play_date_utc.")
+                            , ".$normalization."
+                            , '".addslashes($track_type)."'
+                            , '".addslashes($location)."'
+                            , ".$file_folder_count."
+                            , ".$library_folder_count."
                          ) ON DUPLICATE KEY UPDATE 
-                            track_id = '".$song['Track ID']."'
-                            , name = '".addslashes($song['Name'])."'
-                            , artist = '".addslashes($song['Artist'])."'
-                            , album = '".addslashes($song['Album'])."'
+                            track_id = ".$track_id."
+                            , name = '".addslashes($name)."'
+                            , artist = '".addslashes($artist)."'
+                            , album = '".addslashes($album)."'
                             , compilation = ".$compilation."
                             , podcast = ".$podcast."
-                            , unplayed = ".$unplayed;
+                            , unplayed = ".$unplayed."
+                            , kind = '".addslashes($kind)."'
+                            , size = ".$size."
+                            , total_time = ".$total_time."
+                            , track_number = ".$track_number."
+                            , track_count = ".$track_count."
+                            , year = ".$year."
+                            , date_modified = FROM_UNIXTIME(".$date_modified.")
+                            , date_added = FROM_UNIXTIME(".$date_added.")
+                            , bit_rate = ".$bit_rate."
+                            , sample_rate = ".$sample_rate."
+                            , rating = ".$rating."
+                            , album_rating = ".$album_rating."
+                            , album_rating_computed = ".$album_rating_computed."
+                            , play_count = ".$play_count."
+                            , play_date = ".$play_date."
+                            , play_date_utc = FROM_UNIXTIME(".$play_date_utc.")
+                            , normalization = ".$normalization."
+                            , track_type = '".addslashes($track_type)."'
+                            , location = '".addslashes($location)."'
+                            , file_folder_count = ".$file_folder_count."
+                            , library_folder_count = ".$library_folder_count
+                 ;
 
                  $logger->debug("SQL being executed: ".$sql);
                  if (!$result = $db->query($sql)) {throw new Exception("Unable to insert/udpate entry '".$song['Persistent ID']."': ".$db->error);}
