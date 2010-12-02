@@ -45,12 +45,11 @@
               // Loop through each song in the library
               foreach ($songs as $song) {
 
-                  // Determine whether entry is a compilation
-                  $compilation = 0;
-                  if (isset($song['Compilation'])) {
-                      $compilation = 1;
-                  }
-
+                  // Handle the true/false fields
+                  $compilation = isset($song['Compilation']) ? 1 : 0;
+                  $podcast = isset($song['Podcast']) ? 1 : 0;
+                  $unplayed = isset($song['Unplayed']) ? 1 : 0;
+                  
                  // Update existing entries, and add new ones
                  //if (!$result = $db->query("SELECT persistent_id FROM songs WHERE persistent_id = '".$song['Persistent ID']."'")) {$logger->error("Error checking the existence of song ".$song['Persistent ID'].": ".$db->error);}
                  $sql = "INSERT INTO
@@ -62,6 +61,8 @@
                             , artist
                             , album
                             , compilation
+                            , podcast
+                            , unplayed
                          ) VALUES (
                             '".addslashes($song['Persistent ID'])."'
                             , ".$song['Track ID']."
@@ -69,12 +70,16 @@
                             , '".addslashes($song['Artist'])."'
                             , '".addslashes($song['Album'])."'
                             , ".$compilation."
+                            , ".$podcast."
+                            , ".$unplayed."
                          ) ON DUPLICATE KEY UPDATE 
                             track_id = '".$song['Track ID']."'
                             , name = '".addslashes($song['Name'])."'
                             , artist = '".addslashes($song['Artist'])."'
                             , album = '".addslashes($song['Album'])."'
-                            , compilation = ".$compilation;
+                            , compilation = ".$compilation."
+                            , podcast = ".$podcast."
+                            , unplayed = ".$unplayed;
 
                  $logger->debug("SQL being executed: ".$sql);
                  if (!$result = $db->query($sql)) {throw new Exception("Unable to insert/udpate entry '".$song['Persistent ID']."': ".$db->error);}
