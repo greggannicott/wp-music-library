@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 3.3.2deb1
+-- version 3.2.4
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Dec 01, 2010 at 08:03 PM
+-- Generation Time: Dec 02, 2010 at 11:51 AM
 -- Server version: 5.1.41
--- PHP Version: 5.3.2-1ubuntu4.2
+-- PHP Version: 5.3.1
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
@@ -48,6 +48,8 @@ CREATE TABLE IF NOT EXISTS `songs` (
   `play_date_utc` date DEFAULT NULL,
   `normalization` int(11) DEFAULT NULL,
   `compilation` tinyint(1) DEFAULT NULL,
+  `podcast` tinyint(1) DEFAULT NULL,
+  `unplayed` tinyint(1) DEFAULT NULL COMMENT 'States whether a podcast has been played or not.',
   `track_type` text,
   `location` text,
   `file_folder_count` int(11) DEFAULT NULL,
@@ -55,3 +57,7 @@ CREATE TABLE IF NOT EXISTS `songs` (
   `in_library_file_flag` tinyint(1) DEFAULT NULL COMMENT 'Used during import processed. Flagged as true if present in library file. All without true status are removed at end of import.',
   PRIMARY KEY (`persistent_id`(767))
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
