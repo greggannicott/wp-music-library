@@ -42,6 +42,8 @@
               $rows_updated = array();
               $rows_deleted = 0;
 
+              $logger->debug("Starting inserts and updates.");
+
               // Loop through each song in the library
               foreach ($songs as $song) {
 
@@ -192,27 +194,37 @@
                  // Update the database to state that this file exists in the library
                  // This will be used at the end of the import to remove entries
                  // that do not exist (ie. have been deleted from iTunes).
-                 $logger->debug("Updating table to reflect that entry exists in library.");
+                 $logger->debug("Updating table to reflect that entry exists in library file.");
                  if (!$result = $db->query("UPDATE songs SET in_library_file_flag = 1 WHERE persistent_id = '".$song['Persistent ID']."'")) {throw new Exception("Unable to mark entry '".$song['Persistent ID']."' as existing in library: ".$db->error);}
 
               }
 
+              $logger->debug("Inserts and updates completed.");
+
               // Now delete all entries not present in the library file
+              $logger->debug("Deleting entries that were not present in library file.");
               if (!$result = $db->query("DELETE FROM songs WHERE in_library_file_flag is null")) {throw new Exception("Unable to removed deleted entries: ".$db->error);}
 
               // Keep the stats up to date
               $rows_deleted = $db->affected_rows;
 
               // Reset the in_library_file flag
+              $logger->debug("Reseting all in_library_file flags to null.");
               if (!$result = $db->query("UPDATE songs SET in_library_file_flag = null")) {throw new Exception("Unable to reset in_library_file_flag: ".$db->error);}
 
               // If we got this far, we can commit the changes
-              $logger->info("Committing changes to database.");
-              $db->commit();
+              $logger->debug("Committing changes to database.");
+              if ($db->commit()) {
+                 $logger->info("Changes committed.");
+              } else {
+                 throw new Exception("Failed to commit changes. Error unknown");
+              }
 
               // Re-enable autocommit to be on the safe side
               $logger->debug("Re-enabling Auto Commit");
               $db->autocommit(TRUE);
+
+              // Output results to screen
               
               print '<h1>Import Results</h1>';
               print '<h2>Overview</h2>';
@@ -245,7 +257,17 @@
                   print '<p>None</p>';
               }
 
+              // Output results to log
+              $logger->debug('--------------');
+              $logger->debug('Import Outcome:');
+              $logger->debug('--------------');
+              $logger->debug('Song(s) Inserted: '.count($rows_inserted));
+              $logger->debug('Song(s) Updated: '.count($rows_updated));
+              $logger->debug('Song(s) Deleted: '.$rows_deleted);
+
            } catch (Exception $e) {
+
+               $logger->info("Error encountered.");
 
                // Rollback any database changes
                $logger->info("Performing rollback of database changes.");
