@@ -121,7 +121,7 @@ function musiclibrary_func($atts) {
       // Return a list of all artists
       $results = $database->get_results("SELECT * FROM songs WHERE artist = '".$_GET['artist']."' and compilation != 1 AND podcast != 1 GROUP BY album ORDER BY album", OBJECT_K);
 
-      $output = '<h3>'.$_GET['artist'].' Albums.</h3>';
+      $output = '<h3>'.$_GET['artist'].' albums in my collection:</h3>';
 
       $output .= '<ul>';
 
@@ -137,12 +137,25 @@ function musiclibrary_func($atts) {
       // Return a list of all artists
       $results = $database->get_results("SELECT * FROM songs WHERE artist = '".$_GET['artist']."' and album = '".$_GET['album']."' and compilation != 1 AND podcast != 1 ORDER BY track_number", OBJECT_K);
 
+      // Define the HTML for a star
+      $star_html = '<img src="' . get_bloginfo('wpurl') . '/wp-content/plugins/MusicLibrary/images/star_on.gif">';
+
       $output = '<h3>'.$_GET['artist'].' - '.$_GET['album'].'</h3>';
 
       $output .= '<ul>';
 
       foreach ($results as $song) {
-         $output .= '<li>'.$song->track_number.' - '.$song->name.'</li>';
+
+         // Generate the collection of starts
+         for ($i = 1; $i <= $song->rating; $i = $i + 20) {
+            $stars .= $star_html;
+         }
+
+         // Output the song
+         $output .= '<li>'.$song->track_number.' - '.$song->name.' '.$stars.'</li>';
+
+         // Clear out the previous stars
+         $stars = null;
       }
 
       $output .= '</ul>';
