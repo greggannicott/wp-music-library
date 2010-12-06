@@ -70,10 +70,26 @@ function musiclibrary_func($atts) {
 
       $output = '<h3>All Artists</h3>';
 
-      $output .= '<ul>';
-
       foreach ($results as $song) {
+
+         // Check to see if the first letter differs from the previous
+         if ($prev_first_letter != substr(strtoupper($song->artist), 0,1)) {
+            // If we have a prev letter, close off the previous ul.
+            if (isset($prev_first_letter)) {
+               $output .= '</ul>';
+            }
+            // Print the letter
+            $output .=  '<h4>'.substr($song->artist,0,1).'</h4>';
+            // Start off the next ul.
+            $output .=  '<ul>';
+         }
+
+         // Output the song name
          $output .= '<li><a href="'.$custom_request_uri.'artist='.urlencode($song->artist).'">'.$song->artist.'</a></li>';
+
+         // Note the prev first letter.
+         $prev_first_letter = strtoupper(substr($song->artist,0,1));
+         
       }
 
       $output .= '</ul>';
