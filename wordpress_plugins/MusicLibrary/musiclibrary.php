@@ -23,10 +23,27 @@ License: GPL2
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+///////////////////////////////// REGISTER HOOKS
+
+// register actions
+
+# Calls a function to handle additions required to <head>
+add_action('wp_head', 'addheadercode_func');
+
 // register shortcodes
 
 # [music_library]
 add_shortcode ( 'music_library', 'musiclibrary_func');
+
+//////////////////////////////// SUPPORTING FUNCTIONS
+
+/**
+ * Handles any additions required to the <head>
+ */
+
+function addheadercode_func() {
+   echo '<link type="text/css" rel="stylesheet" href="' . get_bloginfo('wpurl') . '/wp-content/plugins/MusicLibrary/styles/generic.css" />' . "\n";
+}
 
 /**
  * Outputs contents of music library when [music_library] shortcode is found
@@ -68,7 +85,11 @@ function musiclibrary_func($atts) {
       // Return a list of all artists
       $results = $database->get_results("SELECT * FROM songs WHERE compilation != 1 AND podcast != 1  AND artist != 'null' GROUP BY artist ORDER BY song_artist", OBJECT_K);
 
-      $output = '<h3>All Artists</h3>';
+      // Sub Title
+      $output = '<h3>All Bands & Artists</h3>';
+
+      // Intro Text
+      $output .= '<p>This page contains a list of all the bands and artists in my music collection. To view the list of albums I own per artist/band, just click the relevant artist/band.</p>';
 
       foreach ($results as $song) {
 
@@ -79,7 +100,7 @@ function musiclibrary_func($atts) {
                $output .= '</ul>';
             }
             // Print the letter
-            $output .=  '<h4>'.substr($song->artist,0,1).'</h4>';
+            $output .=  '<h4 class="initial_letter">'.substr($song->artist,0,1).'</h4>';
             // Start off the next ul.
             $output .=  '<ul>';
          }
