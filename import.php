@@ -60,7 +60,7 @@
                   $track_id = isset($song['Track ID']) ? $song['Track ID'] : 'null';
                   $name = isset($song['Name']) ? $song['Name'] : 'null';
                   $artist = isset($song['Artist']) ? $song['Artist'] : 'null';
-                  $song_artist = isset($song['Song Artist']) ? $song['Song Artist'] : 'null';
+                  $song_artist = isset($song['Song Artist']) ? $song['Song Artist'] : $song['Artist'];
                   $album = isset($song['Album']) ? $song['Album'] : 'null';
                   $kind = isset($song['Kind']) ? $song['Kind'] : 'null';
                   $size = isset($song['Size']) ? $song['Size'] : 'null';
