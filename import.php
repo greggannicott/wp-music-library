@@ -60,6 +60,7 @@
                   $track_id = isset($song['Track ID']) ? $song['Track ID'] : 'null';
                   $name = isset($song['Name']) ? $song['Name'] : 'null';
                   $artist = isset($song['Artist']) ? $song['Artist'] : 'null';
+                  $song_artist = isset($song['Song Artist']) ? $song['Song Artist'] : 'null';
                   $album = isset($song['Album']) ? $song['Album'] : 'null';
                   $kind = isset($song['Kind']) ? $song['Kind'] : 'null';
                   $size = isset($song['Size']) ? $song['Size'] : 'null';
@@ -90,6 +91,7 @@
                             , track_id
                             , name
                             , artist
+                            , song_artist
                             , album
                             , compilation
                             , podcast
@@ -120,6 +122,7 @@
                             , ".$track_id."
                             , '".addslashes($name)."'
                             , '".addslashes($artist)."'
+                            , '".addslashes($song_artist)."'
                             , '".addslashes($album)."'
                             , ".$compilation."
                             , ".$podcast."
@@ -149,6 +152,7 @@
                             track_id = ".$track_id."
                             , name = '".addslashes($name)."'
                             , artist = '".addslashes($artist)."'
+                            , song_artist = '".addslashes($song_artist)."'
                             , album = '".addslashes($album)."'
                             , compilation = ".$compilation."
                             , podcast = ".$podcast."

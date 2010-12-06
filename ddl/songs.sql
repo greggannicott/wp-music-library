@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Dec 02, 2010 at 04:28 PM
+-- Generation Time: Dec 06, 2010 at 01:17 PM
 -- Server version: 5.1.41
 -- PHP Version: 5.3.1
 
@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `songs` (
   `track_id` int(11) DEFAULT NULL,
   `name` text,
   `artist` text,
+  `song_artist` text COMMENT 'Artist, but without the ''The''',
   `album` text,
   `kind` text,
   `size` int(11) DEFAULT NULL,
