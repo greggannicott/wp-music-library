@@ -35,11 +35,32 @@ add_shortcode ( 'music_library', 'musiclibrary_func');
  */
 function musiclibrary_func($atts) {
 
-   // Create a var to handle the output
+   // Created required vars
    $output = null;
+   $custom_request_uri = null;
 
    // Connect to the music library database
    $database = new wpdb('greg','wooky711','music','localhost');
+
+   // Determine whether permalinks are in use or not...
+   $permalinks = (get_option('permalink_structure') != '') ? TRUE : FALSE;
+
+   // Determine the request_uri to be used based on whether permalinks are
+   // in use and also whether args are being passed in or not. There is a known
+   // issue where if permalinks are disabled and you're viewing a subpage (ie.
+   // not the list of all artists), the urls generated on that page include
+   // duplicate fields. This doesn't cause a failure.
+   if (count($_SERVER['argv']) > 0) {
+      // If permalinks are enabled, we want to get rid of all arguments to avoid
+      // duplicates.
+      if ($permalinks) {
+         $custom_request_uri = '?';
+      } else {
+         $custom_request_uri = $_SERVER['REQUEST_URI'].'&';
+      }
+   } else {
+      $custom_request_uri = $_SERVER['REQUEST_URI'].'?';
+   }
 
    // If no artist or album is passed, display all artists
    if (!isset($_GET['artist']) && !isset($_GET['album'])) {
@@ -52,7 +73,7 @@ function musiclibrary_func($atts) {
       $output .= '<ul>';
 
       foreach ($results as $song) {
-         $output .= '<li><a href="'.$_SERVER["REQUEST_URI"].'&artist='.urlencode($song->artist).'">'.$song->artist.'</a></li>';
+         $output .= '<li><a href="'.$custom_request_uri.'artist='.urlencode($song->artist).'">'.$song->artist.'</a></li>';
       }
 
       $output .= '</ul>';
@@ -68,7 +89,7 @@ function musiclibrary_func($atts) {
       $output .= '<ul>';
 
       foreach ($results as $song) {
-         $output .= '<li><a href="'.$_SERVER["REQUEST_URI"].'&artist='.urlencode($song->artist).'&album='.urlencode($song->album).'">'.$song->album.'</a></li>';
+         $output .= '<li><a href="'.$custom_request_uri.'artist='.urlencode($song->artist).'&album='.urlencode($song->album).'">'.$song->album.'</a></li>';
       }
 
       $output .= '</ul>';
