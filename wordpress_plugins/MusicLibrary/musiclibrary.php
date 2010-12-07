@@ -34,6 +34,10 @@ $music_library_db_version = "0.1";
 
 register_activation_hook(__FILE__,'music_library_install_func');
 
+// admin pages
+
+add_action('admin_menu', 'music_library_replace_menu_func');
+
 // register actions
 
 # Calls a function to handle additions required to <head>
@@ -175,6 +179,65 @@ function musiclibrary_func($atts) {
    // Return the music library in place of the shortcode
    return $output;
 }
+
+/**
+ * Add a link to the admin page to the WordPress menu
+ */
+function music_library_replace_menu_func() {
+   add_options_page('Music Library Options', 'Music Library', 'manage_options', basename(__FILE__), 'music_library_options_page');
+}
+
+/**
+ * Handles the display of the options page for this plugin
+ */
+function music_library_options_page() {
+
+   // Check to see whether the import form has been used
+   if (isset($_POST['action']) && $_POST['action'] == 'import') {
+      // Move the uploaded file to the 'uploads' directory
+      $upload = wp_upload_bits($_FILES["field1"]["name"], null, file_get_contents($_FILES["field1"]["tmp_name"]));
+
+      print '<p>Moved to: '.$upload['file'].'</p>';
+   }
+
+   echo '<div class="wrap">';
+
+      // Title (wp standard is 'h2')
+      echo '<h2>Music Library Options</h2>';
+
+      // Start the form
+      echo '<form name="music_library_options" method="post" enctype="multipart/form-data">';
+
+         // Include two hidden fields which automatically help to check that the user can update options and also redirect the user back
+         wp_nonce_field('update-options');
+
+         echo '<h3>Upload Library</h3>';
+         echo '<p>This will up trigger an update of your library, adding new entries, updating existing and removing deleted entries.</p>';
+
+         // Start the table -- this uses a standard look n feel for WP
+         print '<table class="form-table">';
+
+         print '<tr valign="top">';
+            print '<th scope="row">Library File:</th>';
+            print '<td><input size="50" type="file" name="library_file" /></td>';
+         print '</tr>';
+
+         print '</table>';
+
+         print '<input type="hidden" name="action" value="import" />';
+         print '<input type="submit" class="button-primary" value="Update Library" />';
+
+      echo '</form>';
+
+   print '</div>';
+
+}
+
+/**
+ * This function is called when the plugin is activated
+ * @global <type> $wpdb
+ * @global string $music_library_db_version
+ */
 
 function music_library_install_func() {
    global $wpdb;
