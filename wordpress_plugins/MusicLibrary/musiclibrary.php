@@ -23,7 +23,16 @@ License: GPL2
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+///////////////////////////////// GLOBAL VARIABLES
+
+global $music_library_db_version;
+$music_library_db_version = "0.1";
+
 ///////////////////////////////// REGISTER HOOKS
+
+// activation hooks
+
+register_activation_hook(__FILE__,'music_library_install_func');
 
 // register actions
 
@@ -167,6 +176,70 @@ function musiclibrary_func($atts) {
    return $output;
 }
 
+function music_library_install_func() {
+   global $wpdb;
+   global $music_library_db_version;
 
+   // Set the name for the table that's hold the list of iTunes songs.
+   $table_name = $wpdb->prefix . "music_library_songs";
+
+   // Check to see if the music_library_songs table already exists. If it doesn't,
+   // create it.
+   if($wpdb->get_var("show tables like '$table_name'") != $table_name) {
+
+      // Specify the sql to create the table. Note, that in order for it to work
+      // using dbDelta, the following rules must be obeyed:
+      // - You have to put each field on its own line in your SQL statement.
+      // - You have to have two spaces between the words PRIMARY KEY and the definition of your primary key.
+      // - You must use the key word KEY rather than its synonym INDEX and you must include at least one KEY. 
+      $sql = "CREATE TABLE " . $table_name . " (
+                  `persistent_id` text NOT NULL,
+                  `track_id` int(11) DEFAULT NULL,
+                  `name` text,
+                  `artist` text,
+                  `song_artist` text COMMENT 'Artist, but without the ''The''',
+                  `album` text,
+                  `kind` text,
+                  `size` int(11) DEFAULT NULL,
+                  `total_time` int(11) DEFAULT NULL,
+                  `track_number` int(11) DEFAULT NULL,
+                  `track_count` int(11) DEFAULT NULL,
+                  `year` int(11) DEFAULT NULL,
+                  `date_modified` timestamp NULL DEFAULT NULL,
+                  `date_added` timestamp NULL DEFAULT NULL,
+                  `bit_rate` int(11) DEFAULT NULL,
+                  `sample_rate` int(11) DEFAULT NULL,
+                  `rating` int(11) DEFAULT NULL,
+                  `album_rating` int(11) DEFAULT NULL,
+                  `album_rating_computed` tinyint(1) DEFAULT NULL,
+                  `play_count` int(11) DEFAULT NULL,
+                  `play_date` int(11) DEFAULT NULL,
+                  `play_date_utc` timestamp NULL DEFAULT NULL,
+                  `normalization` int(11) DEFAULT NULL,
+                  `compilation` tinyint(1) DEFAULT NULL,
+                  `podcast` tinyint(1) DEFAULT NULL,
+                  `unplayed` tinyint(1) DEFAULT NULL COMMENT 'States whether a podcast has been played or not.',
+                  `track_type` text,
+                  `location` text,
+                  `file_folder_count` int(11) DEFAULT NULL,
+                  `library_folder_count` int(11) DEFAULT NULL,
+                  `in_library_file_flag` tinyint(1) DEFAULT NULL COMMENT 'Used during import processed. Flagged as true if present in library file. All without true status are removed at end of import.',
+                  PRIMARY KEY  (`persistent_id`(767))
+               ) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
+
+      // Include the code required to perform the dbDelta
+      require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+
+      // Perform the dbDelta - this will create/update the table
+      dbDelta($sql);
+
+      // Make a note of this database version - this could come in handy
+      // when we need to perform an update.
+      add_option("music_library_db_version", $music_library_db_version);
+
+   }
+
+
+}
 
 ?>
