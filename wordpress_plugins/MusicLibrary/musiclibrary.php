@@ -195,9 +195,9 @@ function music_library_options_page() {
    // Check to see whether the import form has been used
    if (isset($_POST['action']) && $_POST['action'] == 'import') {
       // Move the uploaded file to the 'uploads' directory
-      $upload = wp_upload_bits($_FILES["field1"]["name"], null, file_get_contents($_FILES["field1"]["tmp_name"]));
+      $upload = wp_upload_bits($_FILES["library_file"]["name"], null, file_get_contents($_FILES["library_file"]["tmp_name"]));
 
-      print '<p>Moved to: '.$upload['file'].'</p>';
+      print '<p>'.print_r($upload).'</p>';
    }
 
    echo '<div class="wrap">';
