@@ -60,7 +60,7 @@ add_action('wp_head', 'addheadercode_func');
 // register shortcodes
 
 # [music_library]
-add_shortcode ( 'music_library', 'musiclibrary_func');
+add_shortcode ( 'music_library', 'display_musiclibrary_func');
 
 //////////////////////////////// SUPPORTING FUNCTIONS
 
@@ -77,14 +77,13 @@ function addheadercode_func() {
  * @param array $atts
  * @return string Content generated to replace shortcode
  */
-function musiclibrary_func($atts) {
+function display_musiclibrary_func($atts) {
+
+   global $wpdb;  # used for interacting with database
 
    // Created required vars
    $output = null;
    $custom_request_uri = null;
-
-   // Connect to the music library database
-   $database = new wpdb('greg','wooky711','music','localhost');
 
    // Determine whether permalinks are in use or not...
    $permalinks = (get_option('permalink_structure') != '') ? TRUE : FALSE;
@@ -110,7 +109,7 @@ function musiclibrary_func($atts) {
    if (!isset($_GET['artist']) && !isset($_GET['album'])) {
 
       // Return a list of all artists
-      $results = $database->get_results("SELECT * FROM songs WHERE compilation != 1 AND podcast != 1  AND artist != 'null' GROUP BY artist ORDER BY song_artist", OBJECT_K);
+      $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE compilation != 1 AND podcast != 1  AND artist != 'null' GROUP BY artist ORDER BY song_artist", OBJECT_K);
 
       // Sub Title
       $output = '<h3>All Bands & Artists</h3>';
@@ -146,7 +145,7 @@ function musiclibrary_func($atts) {
    } elseif (isset($_GET['artist']) && !isset($_GET['album'])) {
 
       // Return a list of all artists
-      $results = $database->get_results("SELECT * FROM songs WHERE artist = '".$_GET['artist']."' and compilation != 1 AND podcast != 1 GROUP BY album ORDER BY album", OBJECT_K);
+      $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE artist = '".$_GET['artist']."' and compilation != 1 AND podcast != 1 GROUP BY album ORDER BY album", OBJECT_K);
 
       $output = '<h3>'.$_GET['artist'].' albums in my collection:</h3>';
 
@@ -162,7 +161,7 @@ function musiclibrary_func($atts) {
    } elseif (isset($_GET['artist']) && isset($_GET['album'])) {
 
       // Return a list of all artists
-      $results = $database->get_results("SELECT * FROM songs WHERE artist = '".$_GET['artist']."' and album = '".$_GET['album']."' and compilation != 1 AND podcast != 1 ORDER BY track_number", OBJECT_K);
+      $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE artist = '".$_GET['artist']."' and album = '".$_GET['album']."' and compilation != 1 AND podcast != 1 ORDER BY track_number", OBJECT_K);
 
       // Define the HTML for a star
       $star_html = '<img src="' . get_bloginfo('wpurl') . '/wp-content/plugins/MusicLibrary/images/star_on.gif">';
@@ -206,7 +205,7 @@ function music_library_replace_menu_func() {
  */
 function music_library_options_page() {
 
-   global $wpdb;
+   global $wpdb;  # used for interacting with database
 
    // Check to see whether the import form has been used
    if (isset($_POST['action']) && $_POST['action'] == 'import') {
@@ -521,7 +520,7 @@ function music_library_options_page() {
  */
 
 function music_library_install_func() {
-   global $wpdb;
+   global $wpdb;  # used for interacting with database
    global $music_library_db_version;
 
    // Check to see if the music_library_songs table already exists. If it doesn't,
