@@ -121,32 +121,40 @@ function display_musiclibrary_func($atts) {
       // Sub Title
       $output = '<h3>All Bands & Artists</h3>';
 
-      // Intro Text
-      $output .= '<p>This page contains a list of all the bands and artists in my music collection. To view the list of albums I own per artist/band, just click the relevant artist/band.</p>';
+      // Check that we have results
+      if (count($results) > 0) {
 
-      foreach ($results as $song) {
+         // Intro Text
+         $output .= '<p>This page contains a list of all the bands and artists in my music collection. To view the list of albums I own per artist/band, just click the relevant artist/band.</p>';
 
-         // Check to see if the first letter differs from the previous
-         if ($prev_first_letter != substr(strtoupper($song->artist), 0,1)) {
-            // If we have a prev letter, close off the previous ul.
-            if (isset($prev_first_letter)) {
-               $output .= '</ul>';
+         foreach ($results as $song) {
+
+            // Check to see if the first letter differs from the previous
+            if ($prev_first_letter != substr(strtoupper($song->artist), 0,1)) {
+               // If we have a prev letter, close off the previous ul.
+               if (isset($prev_first_letter)) {
+                  $output .= '</ul>';
+               }
+               // Print the letter
+               $output .=  '<h4 class="initial_letter">'.substr($song->artist,0,1).'</h4>';
+               // Start off the next ul.
+               $output .=  '<ul>';
             }
-            // Print the letter
-            $output .=  '<h4 class="initial_letter">'.substr($song->artist,0,1).'</h4>';
-            // Start off the next ul.
-            $output .=  '<ul>';
+
+            // Output the song name
+            $output .= '<li><a href="'.$custom_request_uri.'artist='.urlencode($song->artist).'">'.$song->artist.'</a></li>';
+
+            // Note the prev first letter.
+            $prev_first_letter = strtoupper(substr($song->artist,0,1));
+
          }
 
-         // Output the song name
-         $output .= '<li><a href="'.$custom_request_uri.'artist='.urlencode($song->artist).'">'.$song->artist.'</a></li>';
+         $output .= '</ul>';
 
-         // Note the prev first letter.
-         $prev_first_letter = strtoupper(substr($song->artist,0,1));
-         
+      // If there were no entries in the library, state as much
+      } else {
+         $output .= '<p>There are currently no songs present in the library.</p>';
       }
-
-      $output .= '</ul>';
 
    // If only artist is passed in, display list of albums
    } elseif (isset($_GET['artist']) && !isset($_GET['album'])) {
