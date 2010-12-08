@@ -194,10 +194,38 @@ function music_library_options_page() {
 
    // Check to see whether the import form has been used
    if (isset($_POST['action']) && $_POST['action'] == 'import') {
-      // Move the uploaded file to the 'uploads' directory
-      $upload = wp_upload_bits($_FILES["library_file"]["name"], null, file_get_contents($_FILES["library_file"]["tmp_name"]));
 
-      print '<p>'.print_r($upload).'</p>';
+      // Determine the location we're going to move the file to (this plugin's dir)
+      $target_path = WP_PLUGIN_DIR.'/'.dirname(plugin_basename(__FILE__)).'/';
+
+      try {
+
+         // Validate the file
+
+         # Check the user has uploaded a file
+         if ($_FILES['library_file']['tmp_name'] == '') {throw new Exception("Unable to import file. No library file provided. Please try again.");}
+
+         # Check that the file being uploaded has an xml extension
+         $ext = substr($_FILES['library_file']['name'], strrpos($_FILES['library_file']['name'], '.') + 1);
+         if (strtolower($ext) != 'xml') {throw new Exception("Unable to import file. File provided does not have an '.xml' file extension.");}
+
+         // Move the uploaded file to the 'plugins' directory
+
+         if(move_uploaded_file($_FILES['library_file']['tmp_name'], $target_path.basename( $_FILES['library_file']['name']))) {
+            echo "<div id=\"message\" class=\"updated fade\"><p>The file ".  basename( $_FILES['library_file']['name'])." has been uploaded to: ".$target_path.basename( $_FILES['library_file']['name'])."</p></div>";
+         } else {
+            throw new Exception("There was an error uploading the file. Please try again.");
+         }
+
+         // @TODO: Include the code which populates the DB here.
+
+         // Tidy up and remove the library file
+         unlink($target_path.basename( $_FILES['library_file']['name']));
+
+      } catch (Exception $e) {
+         echo "<div id=\"message\" class=\"error fade\"><p>".$e->getMessage()."</p></div>";
+      }
+
    }
 
    echo '<div class="wrap">';
