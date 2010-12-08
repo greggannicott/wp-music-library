@@ -1,7 +1,7 @@
 <?php
 /*
-Plugin Name: Music Library
-Description: Displays music library.
+Plugin Name: WP Music Library
+Description: Displays your iTunes music library on your blog.
 Version: 0.1
 Author: Greg Gannicott
 Author URI: http://greg.gannicott.co.uk
@@ -37,10 +37,17 @@ require_once("itunes_xml_parser_php5.php");
 # Define the table that's going to hold the song data
 define('SONGS_TABLE', $wpdb->prefix . "music_library_songs");
 
+# Define the path this plugin's dir
+define('WP_MUSIC_LIBRARY_DIR_PATH', WP_PLUGIN_DIR.'/'.dirname(plugin_basename(__FILE__)).'/');
+
+define('WP_MUSIC_LIBRARY_DIR_URL',plugin_dir_url(__FILE__));
+
 # Define the location where the library file will be handled. This file is
 # deleted at the end of the process. The below is set to the directory of this
 # plugin.
-define('UPLOAD_DIR', WP_PLUGIN_DIR.'/'.dirname(plugin_basename(__FILE__)).'/');
+define('UPLOAD_DIR', WP_MUSIC_LIBRARY_DIR_PATH);
+
+
 
 ///////////////////////////////// REGISTER HOOKS
 
@@ -69,7 +76,7 @@ add_shortcode ( 'music_library', 'display_musiclibrary_func');
  */
 
 function addheadercode_func() {
-   echo '<link type="text/css" rel="stylesheet" href="' . get_bloginfo('wpurl') . '/wp-content/plugins/MusicLibrary/styles/generic.css" />' . "\n";
+   echo '<link type="text/css" rel="stylesheet" href="'.WP_MUSIC_LIBRARY_DIR_URL.'styles/generic.css" />' . "\n";
 }
 
 /**
@@ -197,7 +204,7 @@ function display_musiclibrary_func($atts) {
  * Add a link to the admin page to the WordPress menu
  */
 function music_library_replace_menu_func() {
-   add_options_page('Music Library Options', 'Music Library', 'manage_options', basename(__FILE__), 'music_library_options_page');
+   add_options_page('Music Library Import', 'WP Music Library', 'manage_options', basename(__FILE__), 'music_library_options_page');
 }
 
 /**
