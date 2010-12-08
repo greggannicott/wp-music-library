@@ -1,1 +1,0 @@
-This file exists to make sure Mercurial imports this otherwise empty directory.
