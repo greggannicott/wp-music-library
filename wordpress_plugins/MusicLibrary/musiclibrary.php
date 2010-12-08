@@ -28,6 +28,20 @@ License: GPL2
 global $music_library_db_version;
 $music_library_db_version = "0.1";
 
+///////////////////////////////// INCLUDES
+
+require_once("itunes_xml_parser_php5.php");
+
+///////////////////////////////// CONSTANTS
+
+# Define the table that's going to hold the song data
+define('SONGS_TABLE', $wpdb->prefix . "music_library_songs");
+
+# Define the location where the library file will be handled. This file is
+# deleted at the end of the process. The below is set to the directory of this
+# plugin.
+define('UPLOAD_DIR', WP_PLUGIN_DIR.'/'.dirname(plugin_basename(__FILE__)).'/');
+
 ///////////////////////////////// REGISTER HOOKS
 
 // activation hooks
@@ -192,11 +206,10 @@ function music_library_replace_menu_func() {
  */
 function music_library_options_page() {
 
+   global $wpdb;
+
    // Check to see whether the import form has been used
    if (isset($_POST['action']) && $_POST['action'] == 'import') {
-
-      // Determine the location we're going to move the file to (this plugin's dir)
-      $target_path = WP_PLUGIN_DIR.'/'.dirname(plugin_basename(__FILE__)).'/';
 
       try {
 
@@ -211,18 +224,258 @@ function music_library_options_page() {
 
          // Move the uploaded file to the 'plugins' directory
 
-         if(move_uploaded_file($_FILES['library_file']['tmp_name'], $target_path.basename( $_FILES['library_file']['name']))) {
-            echo "<div id=\"message\" class=\"updated fade\"><p>The file ".  basename( $_FILES['library_file']['name'])." has been uploaded to: ".$target_path.basename( $_FILES['library_file']['name'])."</p></div>";
-         } else {
+         if(!move_uploaded_file($_FILES['library_file']['tmp_name'], UPLOAD_DIR.basename( $_FILES['library_file']['name']))) {
             throw new Exception("There was an error uploading the file. Please try again.");
          }
 
          // @TODO: Include the code which populates the DB here.
 
+         // Generate an array of songs based on the library provided
+         $songs = iTunesXmlParser(UPLOAD_DIR.basename( $_FILES['library_file']['name']));
+
+         // Start the transaction
+         @mysql_query("BEGIN", $wpdb->dbh);
+
+         // Enable displaying of errors
+         $wpdb->hide_errors();
+
+         // Prepare some variables to hold stats
+         $rows_inserted = array();
+         $rows_updated = array();
+         $rows_deleted = 0;
+
+         // Loop through each song in the library
+         foreach ($songs as $song) {
+
+            // Handle the true/false fields
+            // If they exist in the song's entry, it implies 'true'.
+            $compilation = isset($song['Compilation']) ? 1 : 0;
+            $podcast = isset($song['Podcast']) ? 1 : 0;
+            $unplayed = isset($song['Unplayed']) ? 1 : 0;
+            $album_rating_computed = isset($song['Album Rated Computed']) ? 1 : 0;
+
+            // take care of:
+            // - values that might not exist for the popular song in the library (eg. default to nulls)
+            // - timestamp conversion
+            $track_id = isset($song['Track ID']) ? $song['Track ID'] : 'null';
+            $name = isset($song['Name']) ? $song['Name'] : 'null';
+            $artist = isset($song['Artist']) ? $song['Artist'] : 'null';
+            $song_artist = isset($song['Song Artist']) ? $song['Song Artist'] : $song['Artist'];
+            $album = isset($song['Album']) ? $song['Album'] : 'null';
+            $kind = isset($song['Kind']) ? $song['Kind'] : 'null';
+            $size = isset($song['Size']) ? $song['Size'] : 'null';
+            $total_time = isset($song['Total Time']) ? $song['Total Time'] : 'null';
+            $track_number = isset($song['Track Number']) ? $song['Track Number'] : 'null';
+            $track_count = isset($song['Track Count']) ? $song['Track Count'] : 'null';
+            $year = isset($song['Year']) ? $song['Year'] : 'null';
+            $date_modified = isset($song['Date Modified']) ? $song['Date Modified'] : 'null';
+            $date_added = isset($song['Date Added']) ? $song['Date Added'] : 'null';
+            $bit_rate = isset($song['Bit Rate']) ? $song['Bit Rate'] : 'null';
+            $sample_rate = isset($song['Sample Rate']) ? $song['Sample Rate'] : 'null';
+            $rating = isset($song['Rating']) ? $song['Rating'] : 'null';
+            $album_rating = isset($song['Album Rating']) ? $song['Album Rating'] : 'null';
+            $play_count = isset($song['Play Count']) ? $song['Play Count'] : 'null';
+            $play_date = isset($song['Play Date']) ? $song['Play Date'] : 'null';
+            $play_date_utc = isset($song['Play Date UTC']) ? $song['Play Date UTC'] : 'null';
+            $normalization = isset($song['Normalization']) ? $song['Normalization'] : 'null';
+            $track_type = isset($song['Track Type']) ? $song['Track Type'] : 'null';
+            $location = isset($song['Location']) ? $song['Location'] : 'null';
+            $file_folder_count = isset($song['File Folder Count']) ? $song['File Folder Count'] : 'null';
+            $library_folder_count = isset($song['Library Folder Count']) ? $song['Library Folder Count'] : 'null';
+
+            // Update existing entries, and add new ones
+
+            // Create the query
+            $sql = "INSERT INTO
+                      ".SONGS_TABLE."
+                   (
+                      persistent_id
+                      , track_id
+                      , name
+                      , artist
+                      , song_artist
+                      , album
+                      , compilation
+                      , podcast
+                      , unplayed
+                      , kind
+                      , size
+                      , total_time
+                      , track_number
+                      , track_count
+                      , year
+                      , date_modified
+                      , date_added
+                      , bit_rate
+                      , sample_rate
+                      , rating
+                      , album_rating
+                      , album_rating_computed
+                      , play_count
+                      , play_date
+                      , play_date_utc
+                      , normalization
+                      , track_type
+                      , location
+                      , file_folder_count
+                      , library_folder_count
+                   ) VALUES (
+                      '".addslashes($song['Persistent ID'])."'
+                      , ".$track_id."
+                      , '".addslashes($name)."'
+                      , '".addslashes($artist)."'
+                      , '".addslashes($song_artist)."'
+                      , '".addslashes($album)."'
+                      , ".$compilation."
+                      , ".$podcast."
+                      , ".$unplayed."
+                      , '".addslashes($kind)."'
+                      , ".$size."
+                      , ".$total_time."
+                      , ".$track_number."
+                      , ".$track_count."
+                      , ".$year."
+                      , '".$date_modified."'
+                      , '".$date_added."'
+                      , ".$bit_rate."
+                      , ".$sample_rate."
+                      , ".$rating."
+                      , ".$album_rating."
+                      , ".$album_rating_computed."
+                      , ".$play_count."
+                      , ".$play_date."
+                      , '".$play_date_utc."'
+                      , ".$normalization."
+                      , '".addslashes($track_type)."'
+                      , '".addslashes($location)."'
+                      , ".$file_folder_count."
+                      , ".$library_folder_count."
+                   ) ON DUPLICATE KEY UPDATE
+                      track_id = ".$track_id."
+                      , name = '".addslashes($name)."'
+                      , artist = '".addslashes($artist)."'
+                      , song_artist = '".addslashes($song_artist)."'
+                      , album = '".addslashes($album)."'
+                      , compilation = ".$compilation."
+                      , podcast = ".$podcast."
+                      , unplayed = ".$unplayed."
+                      , kind = '".addslashes($kind)."'
+                      , size = ".$size."
+                      , total_time = ".$total_time."
+                      , track_number = ".$track_number."
+                      , track_count = ".$track_count."
+                      , year = ".$year."
+                      , date_modified = '".$date_modified."'
+                      , date_added = '".$date_added."'
+                      , bit_rate = ".$bit_rate."
+                      , sample_rate = ".$sample_rate."
+                      , rating = ".$rating."
+                      , album_rating = ".$album_rating."
+                      , album_rating_computed = ".$album_rating_computed."
+                      , play_count = ".$play_count."
+                      , play_date = ".$play_date."
+                      , play_date_utc = '".$play_date_utc."'
+                      , normalization = ".$normalization."
+                      , track_type = '".addslashes($track_type)."'
+                      , location = '".addslashes($location)."'
+                      , file_folder_count = ".$file_folder_count."
+                      , library_folder_count = ".$library_folder_count
+            ;
+
+            // Execute the query
+            $result = $wpdb->query($sql);
+
+            // Check for a failure
+            if ($result === FALSE) {throw new Exception("Unable to insert/update entry '".$song['Persistent ID']."': ".$wpdb->last_error);}
+
+            // Keep the stats up to date
+            switch ($result) {
+               case 1:
+                   array_push($rows_inserted,$song);
+                   break;
+               case 2:
+                   array_push($rows_updated,$song);
+                   break;
+            }
+
+            // Tidy up following the query
+            unset($result);
+            unset($sql);
+
+            // Update the database to state that this file exists in the library
+            // This will be used at the end of the import to remove entries
+            // that do not exist (ie. have been deleted from iTunes).
+
+            // Create the string
+            $sql = "UPDATE ".SONGS_TABLE." SET in_library_file_flag = 1 WHERE persistent_id = '".$song['Persistent ID']."'";
+
+            // Execute the query
+            $result = $wpdb->query($sql);
+            
+            // Check for a failure
+            if ($result === FALSE) {throw new Exception("Unable to mark entry '".$song['Persistent ID']."' as existing in library: ".$wpdb->last_error);}
+
+            // Tidy up following the query
+            unset($result);
+            unset($sql);
+
+         }
+
+         // Now delete all entries not present in the library file
+
+         // Create the sql
+         $sql = "DELETE FROM ".SONGS_TABLE." WHERE in_library_file_flag is null";
+
+         // Execute the query
+         $result = $wpdb->query($sql);
+
+         // Check for a failure
+         if ($result === FALSE) {throw new Exception("Unable to removed deleted entries: ".$wpdb->last_error);}
+
+         // Keep the stats up to date
+         $rows_deleted = $result;
+
+         // Tidy up following the query
+         unset($result);
+         unset($sql);
+
+         // Reset the 'in_library_file_flag' flag
+
+         // Create the SQL
+         $sql = "UPDATE ".SONGS_TABLE." SET in_library_file_flag = null";
+
+         // Execute the query
+         $result = $wpdb->query($sql);
+         
+         // Check for a failure
+         if ($result === FALSE) {throw new Exception("Unable to reset in_library_file_flag: ".$wpdb->last_error);}
+
+         // Tidy up following the query
+         unset($result);
+         unset($sql);
+
+         // Commit the transaction
+         @mysql_query("COMMIT", $wpdb->dbh);
+
          // Tidy up and remove the library file
-         unlink($target_path.basename( $_FILES['library_file']['name']));
+         unlink(UPLOAD_DIR.basename( $_FILES['library_file']['name']));
+
+         // Output confirmation
+         echo "<div id=\"message\" class=\"updated fade\">
+                  <p>The file ".  basename( $_FILES['library_file']['name'])." has been imported:</p>
+                  <p>
+                  - Song(s) Inserted: ".count($rows_inserted)."</br>
+                  - Song(s) Updated: ".count($rows_updated)."</br>
+                  - Song(s) Deleted: ".$rows_deleted."</br>
+                  </p>
+               </div>";
 
       } catch (Exception $e) {
+
+         // Rollback the transaction
+         @mysql_query("ROLLBACK", $wpdb->dbh);
+
+         // Output the error
          echo "<div id=\"message\" class=\"error fade\"><p>".$e->getMessage()."</p></div>";
       }
 
@@ -253,7 +506,7 @@ function music_library_options_page() {
          print '</table>';
 
          print '<input type="hidden" name="action" value="import" />';
-         print '<input type="submit" class="button-primary" value="Update Library" />';
+         print '<p><input type="submit" class="button-primary" value="Update Library" /></p>';
 
       echo '</form>';
 
@@ -271,12 +524,9 @@ function music_library_install_func() {
    global $wpdb;
    global $music_library_db_version;
 
-   // Set the name for the table that's hold the list of iTunes songs.
-   $table_name = $wpdb->prefix . "music_library_songs";
-
    // Check to see if the music_library_songs table already exists. If it doesn't,
    // create it.
-   if($wpdb->get_var("show tables like '$table_name'") != $table_name) {
+   if($wpdb->get_var("show tables like '".SONGS_TABLE."'") != $table_name) {
 
       // Specify the sql to create the table. Note, that in order for it to work
       // using dbDelta, the following rules must be obeyed:
