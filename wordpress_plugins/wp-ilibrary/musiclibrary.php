@@ -35,6 +35,7 @@ require_once("itunes_xml_parser_php5.php");
 ///////////////////////////////// CONSTANTS
 
 # Define the table that's going to hold the song data
+global $wpdb;
 define('SONGS_TABLE', $wpdb->prefix . "ilibrary_songs");
 
 # Define the path this plugin's dir
@@ -544,7 +545,7 @@ function ilibrary_install_func() {
       // using dbDelta, the following rules must be obeyed:
       // - You have to put each field on its own line in your SQL statement.
       // - You have to have two spaces between the words PRIMARY KEY and the definition of your primary key.
-      // - You must use the key word KEY rather than its synonym INDEX and you must include at least one KEY. 
+      // - You must use the key word KEY rather than its synonym INDEX and you must include at least one KEY.
       $sql = "CREATE TABLE " . SONGS_TABLE . " (
                   `persistent_id` text NOT NULL,
                   `track_id` int(11) DEFAULT NULL,
