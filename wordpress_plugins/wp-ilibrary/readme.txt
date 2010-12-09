@@ -10,6 +10,13 @@ This plugin enables you to display your iTunes music library on a page on your b
 
 == Description ==
 
+WP iLibrary allows you to upload your iTunes library.xml file to your WordPress
+database and have it's music related content displayed on a page on your blog, allowing
+your readers to view the music you own and the ratings you have given individual
+songs.
+
+An example can be found at http://greg.gannicott.co.uk/TBC.
+
 This is the long description.  No limit, and you can use Markdown (as well as in the following sections).
 
 For backwards compatibility, if this section is missing, the full length of the short description will be used, and
@@ -41,19 +48,39 @@ This section describes how to install the plugin and get it working.
 
 e.g.
 
-1. Upload `plugin-name.php` to the `/wp-content/plugins/` directory
-1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('plugin_name_hook'); ?>` in your templates
+1. Download the plugin and unzip it.
+1. Upload the wp-ilibrary folder to the /wp-content/plugins/ directory of your web site.
+1. Activate the plugin in WordPress Admin.
+1. Go to Settings -> WP iLibrary
+1. Click 'Choose File' and locate your iTunes Library File ([Help finding your XML library file](http://support.apple.com/kb/HT1660))
+1. Click 'Update Library'. This will import your library file.
+1. Create a new 'Page'.
+1. Enter a title for the page (eg. My Music Collection)
+1. For the contents of that page, enter the following:</br>[ilibrary]
+1. Save the page.
+1. You should now be able to view your music library on that page.
 
 == Frequently Asked Questions ==
 
-= A question that someone might have =
+= How do I update my online library with the latest version of my library.xml file? =
 
-An answer to that question.
+1. Login to your WordPress Admin
+1. Go to Settings -> WP iLibrary
+1. Click 'Choose File' and locate your iTunes Library File ([Help finding your XML library file](http://support.apple.com/kb/HT1660))
+1. Click 'Update Library'. This will import your library file and update the online library with any changes.
 
-= What about foo bar? =
+= How often should I update my library? =
 
-Answer to foo bar dilemma.
+With regards to this plugin, the following changes to your iTunes library are
+good reasons to update/import your library:
+
+* Addition of new songs
+* Removal of songs
+* Manual updating of meta data such as ratings, song names album names etc.
+
+= Is there an easier way to update my library? =
+
+One day, hopefully. For now you'll have to use the previously mentioned method I'm afraid.
 
 == Screenshots ==
 

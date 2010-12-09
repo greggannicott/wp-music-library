@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: WP Music Library
+Plugin Name: WP iLibrary
 Description: Displays your iTunes music library on your blog.
 Version: 0.1
 Author: Greg Gannicott
@@ -25,8 +25,8 @@ License: GPL2
 
 ///////////////////////////////// GLOBAL VARIABLES
 
-global $music_library_db_version;
-$music_library_db_version = "0.1";
+global $ilibrary_db_version;
+$ilibrary_db_version = "0.1";
 
 ///////////////////////////////// INCLUDES
 
@@ -35,17 +35,17 @@ require_once("itunes_xml_parser_php5.php");
 ///////////////////////////////// CONSTANTS
 
 # Define the table that's going to hold the song data
-define('SONGS_TABLE', $wpdb->prefix . "music_library_songs");
+define('SONGS_TABLE', $wpdb->prefix . "ilibrary_songs");
 
 # Define the path this plugin's dir
-define('WP_MUSIC_LIBRARY_DIR_PATH', WP_PLUGIN_DIR.'/'.dirname(plugin_basename(__FILE__)).'/');
+define('ILIBRARY_DIR_PATH', WP_PLUGIN_DIR.'/'.dirname(plugin_basename(__FILE__)).'/');
 
-define('WP_MUSIC_LIBRARY_DIR_URL',plugin_dir_url(__FILE__));
+define('ILIBRARY_DIR_URL',plugin_dir_url(__FILE__));
 
 # Define the location where the library file will be handled. This file is
 # deleted at the end of the process. The below is set to the directory of this
 # plugin.
-define('UPLOAD_DIR', WP_MUSIC_LIBRARY_DIR_PATH);
+define('UPLOAD_DIR', ILIBRARY_DIR_PATH);
 
 
 
@@ -53,11 +53,11 @@ define('UPLOAD_DIR', WP_MUSIC_LIBRARY_DIR_PATH);
 
 // activation hooks
 
-register_activation_hook(__FILE__,'music_library_install_func');
+register_activation_hook(__FILE__,'ilibrary_install_func');
 
 // admin pages
 
-add_action('admin_menu', 'music_library_replace_menu_func');
+add_action('admin_menu', 'ilibrary_replace_menu_func');
 
 // register actions
 
@@ -67,7 +67,7 @@ add_action('wp_head', 'addheadercode_func');
 // register shortcodes
 
 # [music_library]
-add_shortcode ( 'music_library', 'display_musiclibrary_func');
+add_shortcode ( 'ilibrary', 'display_ilibrary_func');
 
 //////////////////////////////// SUPPORTING FUNCTIONS
 
@@ -76,7 +76,7 @@ add_shortcode ( 'music_library', 'display_musiclibrary_func');
  */
 
 function addheadercode_func() {
-   echo '<link type="text/css" rel="stylesheet" href="'.WP_MUSIC_LIBRARY_DIR_URL.'styles/generic.css" />' . "\n";
+   echo '<link type="text/css" rel="stylesheet" href="'.ILIBRARY_DIR_URL.'styles/generic.css" />' . "\n";
 }
 
 /**
@@ -84,7 +84,7 @@ function addheadercode_func() {
  * @param array $atts
  * @return string Content generated to replace shortcode
  */
-function display_musiclibrary_func($atts) {
+function display_ilibrary_func($atts) {
 
    global $wpdb;  # used for interacting with database
 
@@ -179,7 +179,7 @@ function display_musiclibrary_func($atts) {
       $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE artist = '".$_GET['artist']."' and album = '".$_GET['album']."' and compilation != 1 AND podcast != 1 ORDER BY track_number", OBJECT_K);
 
       // Define the HTML for a star
-      $star_html = '<img src="' . get_bloginfo('wpurl') . '/wp-content/plugins/MusicLibrary/images/star_on.gif">';
+      $star_html = '<img src="' . get_bloginfo('wpurl') . '/wp-content/plugins/wp-ilibrary/images/star_on.gif">';
 
       $output = '<h3>'.$_GET['artist'].' - '.$_GET['album'].'</h3>';
 
@@ -211,14 +211,14 @@ function display_musiclibrary_func($atts) {
 /**
  * Add a link to the admin page to the WordPress menu
  */
-function music_library_replace_menu_func() {
-   add_options_page('Music Library Import', 'WP Music Library', 'manage_options', basename(__FILE__), 'music_library_options_page');
+function ilibrary_replace_menu_func() {
+   add_options_page('Library Import', 'WP iLibrary', 'manage_options', basename(__FILE__), 'ilibrary_options_page');
 }
 
 /**
  * Handles the display of the options page for this plugin
  */
-function music_library_options_page() {
+function ilibrary_options_page() {
 
    global $wpdb;  # used for interacting with database
 
@@ -241,8 +241,6 @@ function music_library_options_page() {
          if(!move_uploaded_file($_FILES['library_file']['tmp_name'], UPLOAD_DIR.basename( $_FILES['library_file']['name']))) {
             throw new Exception("There was an error uploading the file. Please try again.");
          }
-
-         // @TODO: Include the code which populates the DB here.
 
          // Generate an array of songs based on the library provided
          $songs = iTunesXmlParser(UPLOAD_DIR.basename( $_FILES['library_file']['name']));
@@ -498,10 +496,10 @@ function music_library_options_page() {
    echo '<div class="wrap">';
 
       // Title (wp standard is 'h2')
-      echo '<h2>Music Library Options</h2>';
+      echo '<h2>iLibrary Options</h2>';
 
       // Start the form
-      echo '<form name="music_library_options" method="post" enctype="multipart/form-data">';
+      echo '<form name="ilibrary_options" method="post" enctype="multipart/form-data">';
 
          // Include two hidden fields which automatically help to check that the user can update options and also redirect the user back
          wp_nonce_field('update-options');
@@ -531,23 +529,23 @@ function music_library_options_page() {
 /**
  * This function is called when the plugin is activated
  * @global <type> $wpdb
- * @global string $music_library_db_version
+ * @global string $ilibrary_db_version
  */
 
-function music_library_install_func() {
+function ilibrary_install_func() {
    global $wpdb;  # used for interacting with database
-   global $music_library_db_version;
+   global $ilibrary_db_version;
 
-   // Check to see if the music_library_songs table already exists. If it doesn't,
+   // Check to see if the songs table already exists. If it doesn't,
    // create it.
-   if($wpdb->get_var("show tables like '".SONGS_TABLE."'") != $table_name) {
+   if($wpdb->get_var("show tables like '".SONGS_TABLE."'") != SONGS_TABLE) {
 
       // Specify the sql to create the table. Note, that in order for it to work
       // using dbDelta, the following rules must be obeyed:
       // - You have to put each field on its own line in your SQL statement.
       // - You have to have two spaces between the words PRIMARY KEY and the definition of your primary key.
       // - You must use the key word KEY rather than its synonym INDEX and you must include at least one KEY. 
-      $sql = "CREATE TABLE " . $table_name . " (
+      $sql = "CREATE TABLE " . SONGS_TABLE . " (
                   `persistent_id` text NOT NULL,
                   `track_id` int(11) DEFAULT NULL,
                   `name` text,
@@ -590,7 +588,7 @@ function music_library_install_func() {
 
       // Make a note of this database version - this could come in handy
       // when we need to perform an update.
-      add_option("music_library_db_version", $music_library_db_version);
+      add_option("ilibrary_db_version", $ilibrary_db_version);
 
    }
 
