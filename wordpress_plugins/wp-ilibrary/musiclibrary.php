@@ -67,7 +67,7 @@ add_action('wp_head', 'addheadercode_func');
 
 // register shortcodes
 
-# [music_library]
+# [ilibrary]
 add_shortcode ( 'ilibrary', 'display_ilibrary_func');
 
 //////////////////////////////// SUPPORTING FUNCTIONS
@@ -223,6 +223,7 @@ function ilibrary_options_page() {
 
    global $wpdb;  # used for interacting with database
 
+   // IMPORT LIBRARY
    // Check to see whether the import form has been used
    if (isset($_POST['action']) && $_POST['action'] == 'import') {
 
@@ -492,6 +493,32 @@ function ilibrary_options_page() {
          echo "<div id=\"message\" class=\"error fade\"><p>".$e->getMessage()."</p></div>";
       }
 
+   // NEW PAGE
+   } elseif (isset($_POST['action']) && $_POST['action'] == 'add_page') {
+      if (isset($_POST['page_title']) && $_POST['page_title'] != '') {
+
+         // Build up the details for the page
+         $_p = array();
+         $_p['post_title'] = $_POST['page_title'];
+         $_p['post_content'] = "[ilibrary]";
+         $_p['post_status'] = 'publish';
+         $_p['post_type'] = 'page';
+         $_p['comment_status'] = 'closed';
+         $_p['ping_status'] = 'closed';
+         $_p['post_category'] = array(1); // the default 'Uncatrgorised'
+
+         // Insert the post into the database
+         $page_id = wp_insert_post( $_p );
+
+         // Grab a link to the post
+         $permalink = get_permalink( $page_id );
+
+         // Output confirmation
+         echo "<div id=\"message\" class=\"updated fade\"><p>New page has been created. <a href=\"$permalink\" target=\"_blank\">View your library here</a>.</p></div>";
+
+      } else {
+         echo "<div id=\"message\" class=\"error fade\"><p>Unable to create page. No title provided.</p></div>";
+      }
    }
 
    echo '<div class="wrap">';
@@ -504,6 +531,8 @@ function ilibrary_options_page() {
 
          // Include two hidden fields which automatically help to check that the user can update options and also redirect the user back
          wp_nonce_field('update-options');
+
+         // IMPORT LIBRARY
 
          echo '<h3>Upload Library</h3>';
          echo '<p>This will up trigger an update of your library, adding new entries, updating existing and removing deleted entries.</p>';
@@ -520,6 +549,28 @@ function ilibrary_options_page() {
 
          print '<input type="hidden" name="action" value="import" />';
          print '<p><input type="submit" class="button-primary" value="Update Library" /></p>';
+
+         // ADD PAGE
+
+         echo '<h3>Add Library Page</h3>';
+         echo '<p>In order to display your library, you need a page that contains the text [ilibrary].</p>';
+         echo '<p>You can perform this manually. However, a quick way to achieve this is to use the form below.</p>';
+         echo '<p>Once this page has been created, you are free to treat this page as you would any other WordPress page.</p>';
+         echo '<p>Please note: This will create a page even if a page already exists with the text [ilibrary].</p>';
+
+         // Start the table -- this uses a standard look n feel for WP
+         print '<table class="form-table">';
+
+         print '<tr valign="top">';
+            print '<th scope="row">Page Name:</th>';
+            print '<td><input size="50" type="text" name="page_title" /></td>';
+         print '</tr>';
+
+         print '</table>';
+
+         print '<input type="hidden" name="action" value="add_page" />';
+         print '<p><input type="submit" class="button-primary" value="Add Library Page" /></p>';
+
 
       echo '</form>';
 
