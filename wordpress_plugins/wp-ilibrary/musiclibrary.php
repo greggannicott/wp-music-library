@@ -38,15 +38,19 @@ require_once("itunes_xml_parser_php5.php");
 global $wpdb;
 define('SONGS_TABLE', $wpdb->prefix . "ilibrary_songs");
 
-# Define the path this plugin's dir
+# Define the path to this plugin's dir
 define('ILIBRARY_DIR_PATH', WP_PLUGIN_DIR.'/'.dirname(plugin_basename(__FILE__)).'/');
 
+# Define the url to this plugin's dir
 define('ILIBRARY_DIR_URL',plugin_dir_url(__FILE__));
 
 # Define the location where the library file will be handled. This file is
 # deleted at the end of the process. The below is set to the directory of this
 # plugin.
 define('UPLOAD_DIR', ILIBRARY_DIR_PATH);
+
+# Define the 'artist' used to represent compilations
+define('COMPILATIONS_KEYWORD', 'compilations');
 
 
 
@@ -119,14 +123,26 @@ function display_ilibrary_func($atts) {
       // Return a list of all artists
       $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE compilation != 1 AND podcast != 1  AND artist != 'null' GROUP BY artist ORDER BY song_artist", OBJECT_K);
 
+      // Determine whether we have any compilation albums
+      $compilations = $wpdb->get_results("SELECT persistent_id FROM ".SONGS_TABLE." WHERE compilation = 1", OBJECT_K);
+      $compilations_count = count($compilations);
+
       // Sub Title
       $output = '<h3>All Bands & Artists</h3>';
 
       // Check that we have results
-      if (count($results) > 0) {
+      if (count($results) > 0 || $compilations_count > 0) {
 
          // Intro Text
          $output .= '<p>This page contains a list of all the bands and artists in my music collection. To view the list of albums I own per artist/band, just click the relevant artist/band.</p>';
+
+         // Include a compilation albums section if required
+         if ($compilations_count > 0) {
+            $output .= '<h4 class="initial_letter">Compilations</h4>';
+            $output .= '<ul>';
+            $output .= '   <li><a href="'.$custom_request_uri.'artist='.COMPILATIONS_KEYWORD.'">Compilation Albums</a></li>';
+            $output .= '</ul>';
+         }
 
          foreach ($results as $song) {
 
@@ -160,15 +176,28 @@ function display_ilibrary_func($atts) {
    // If only artist is passed in, display list of albums
    } elseif (isset($_GET['artist']) && !isset($_GET['album'])) {
 
-      // Return a list of all artists
-      $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE artist = '".$_GET['artist']."' and compilation != 1 AND podcast != 1 GROUP BY album ORDER BY album", OBJECT_K);
+      $output = null;
 
-      $output = '<h3>'.$_GET['artist'].' albums in my collection:</h3>';
+      if (strtolower($_GET['artist']) != COMPILATIONS_KEYWORD) {
+         // Return a list of all artists
+         $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE artist = '".$_GET['artist']."' and compilation != 1 AND podcast != 1 GROUP BY album ORDER BY album", OBJECT_K);
+
+         $output = '<h3>'.$_GET['artist'].' Albums in my collection:</h3>';
+
+      } else {
+         $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE compilation = 1 AND podcast != 1 GROUP BY album ORDER BY album", OBJECT_K);
+
+         $output = '<h3>Compilation albums in my collection:</h3>';
+      }
 
       $output .= '<ul>';
 
-      foreach ($results as $song) {
-         $output .= '<li><a href="'.$custom_request_uri.'artist='.urlencode($song->artist).'&album='.urlencode($song->album).'">'.$song->album.'</a></li>';
+      if (count($results) > 0) {
+         foreach ($results as $song) {
+            $output .= '<li><a href="'.$custom_request_uri.'artist='.urlencode($_GET['artist']).'&album='.urlencode($song->album).'">'.$song->album.'</a></li>';
+         }
+      } elseif (count($results) == 0 && strtolower($_GET['artist']) == COMPILATIONS_KEYWORD) {
+         print '<p>There are no compilations present in this collection.</p>';
       }
 
       $output .= '</ul>';
@@ -177,12 +206,20 @@ function display_ilibrary_func($atts) {
    } elseif (isset($_GET['artist']) && isset($_GET['album'])) {
 
       // Return a list of all artists
-      $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE artist = '".$_GET['artist']."' and album = '".$_GET['album']."' and compilation != 1 AND podcast != 1 ORDER BY track_number", OBJECT_K);
+      if ($_GET['artist'] != COMPILATIONS_KEYWORD) {
+         $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE artist = '".$_GET['artist']."' and album = '".$_GET['album']."' and compilation != 1 AND podcast != 1 ORDER BY track_number", OBJECT_K);
+      } else {
+         $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE album = '".$_GET['album']."' and compilation = 1 AND podcast != 1 ORDER BY track_number", OBJECT_K);
+      }
 
       // Define the HTML for a star
       $star_html = '<img src="' . get_bloginfo('wpurl') . '/wp-content/plugins/wp-ilibrary/images/star_on.gif">';
 
-      $output = '<h3>'.$_GET['artist'].' - '.$_GET['album'].'</h3>';
+      if ($_GET['artist'] != COMPILATIONS_KEYWORD) {
+         $output = '<h3>'.stripslashes($_GET['artist']).' - '.stripslashes($_GET['album']).'</h3>';
+      } else {
+         $output = '<h3>'.stripslashes($_GET['album']).'</h3>';
+      }
 
       $output .= '<ul>';
 
@@ -549,6 +586,11 @@ function ilibrary_options_page() {
 
          print '<input type="hidden" name="action" value="import" />';
          print '<p><input type="submit" class="button-primary" value="Update Library" /></p>';
+
+     echo '</form>';
+
+     // Start the form
+     echo '<form name="ilibrary_options" method="post" enctype="multipart/form-data">';
 
          // ADD PAGE
 
