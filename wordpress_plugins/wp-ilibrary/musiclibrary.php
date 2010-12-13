@@ -23,6 +23,12 @@ License: GPL2
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+///////////////////////////////// SYSTEM SETTINGS
+
+ini_set("memory_limit", "256M"); # increase memory limit of what script can use
+set_time_limit(60 * 5);          # increase the timeout value to give script more time to handle large files
+
+
 ///////////////////////////////// GLOBAL VARIABLES
 
 global $ilibrary_db_version;
