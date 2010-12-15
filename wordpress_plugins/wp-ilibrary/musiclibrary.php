@@ -25,8 +25,12 @@ License: GPL2
 
 ///////////////////////////////// SYSTEM SETTINGS
 
-ini_set("memory_limit", "256M"); # increase memory limit of what script can use
-set_time_limit(60 * 5);          # increase the timeout value to give script more time to handle large files
+// The following don't appear to be having an effect. Need to investigate.
+// In the mean time, they can be set in php.ini
+//@ini_set( 'upload_max_size' , '100M' );
+//@ini_set( 'post_max_size', '105M');
+//@ini_set( 'max_execution_time', '300' );
+//@ini_set( 'memory_limit', '256M' );
 
 
 ///////////////////////////////// GLOBAL VARIABLES
@@ -521,9 +525,9 @@ function ilibrary_options_page() {
          echo "<div id=\"message\" class=\"updated fade\">
                   <p>The file ".  basename( $_FILES['library_file']['name'])." has been imported:</p>
                   <p>
-                  - Song(s) Inserted: ".count($rows_inserted)."</br>
-                  - Song(s) Updated: ".count($rows_updated)."</br>
-                  - Song(s) Deleted: ".$rows_deleted."</br>
+                  - Song(s) Inserted: ".count($rows_inserted)."<br/>
+                  - Song(s) Updated: ".count($rows_updated)."<br/>
+                  - Song(s) Deleted: ".$rows_deleted."<br/>
                   </p>
                </div>";
 
