@@ -196,7 +196,6 @@ function display_ilibrary_func($atts) {
 
       } else {
          $results = $wpdb->get_results("SELECT * FROM ".SONGS_TABLE." WHERE compilation = 1 AND podcast != 1 GROUP BY album ORDER BY album", OBJECT_K);
-
          $output = '<h3>Compilation albums in my collection:</h3>';
       }
 
@@ -207,7 +206,7 @@ function display_ilibrary_func($atts) {
             $output .= '<li><a href="'.$custom_request_uri.'artist='.urlencode($_GET['artist']).'&album='.urlencode($song->album).'">'.$song->album.'</a></li>';
          }
       } elseif (count($results) == 0 && strtolower($_GET['artist']) == COMPILATIONS_KEYWORD) {
-         print '<p>There are no compilations present in this collection.</p>';
+        $output .= '<p>There are no compilations present in this collection.</p>';
       }
 
       $output .= '</ul>';
@@ -253,7 +252,7 @@ function display_ilibrary_func($atts) {
    }
 
    // Return the music library in place of the shortcode
-   return $output;
+   return addslashes($output);
 }
 
 /**
