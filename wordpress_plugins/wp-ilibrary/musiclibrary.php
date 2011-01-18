@@ -252,7 +252,8 @@ function display_ilibrary_func($atts) {
    }
 
    // Return the music library in place of the shortcode
-   return addslashes($output);
+   return $output;
+   
 }
 
 /**
